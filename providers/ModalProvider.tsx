@@ -1,6 +1,7 @@
 "use client"
 import { useEffect, useState } from "react"
 import PreviewModal from "@/components/ui/PreviewModal"
+import { OrderConfirmModal } from "@/components/modals/OrderConfirmModal"
 
 const ModalProvider = () => {
   const [isMounted, setIsMounted] = useState(false)
@@ -14,6 +15,7 @@ const ModalProvider = () => {
   return (
     <>
       <PreviewModal />
+      <OrderConfirmModal />
     </>
   )
 }

@@ -2,17 +2,20 @@
 
 import axios from "axios"
 import { useSearchParams } from "next/navigation"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import toast from "react-hot-toast"
 
 import Button from "@/components/ui/Button"
 import Currency from "@/components/ui/Currency"
 import useCart from "@/hooks/useCart"
+import { useOrderConfirmModal } from "@/hooks/useOrderConfirmModal"
 
 const Summary = () => {
   const searchParams = useSearchParams()
   const items = useCart((state) => state.items)
   const removeAll = useCart((state) => state.removeAll)
+  const [loading, setLoading] = useState(false)
+  const orderConfirmModal = useOrderConfirmModal()
 
   useEffect(() => {
     if (searchParams.get("success")) {
@@ -30,14 +33,22 @@ const Summary = () => {
   }, 0)
 
   const onCheckout = async () => {
-    const response = await axios.post(
-      `${process.env.NEXT_PUBLIC_API_URL}/checkout`,
-      {
-        productIds: items.map((item) => item.id),
-      },
-    )
+    setLoading(true)
+    try {
+      const response = await axios.post(
+        `${process.env.NEXT_PUBLIC_API_URL}/orders/checkout`,
+        {
+          productIds: items.map((item) => item.id),
+        },
+      )
 
-    window.location = response.data.url
+      const orderId = response.data.id
+      orderConfirmModal.onOpen(orderId)
+    } catch (error) {
+      toast.error("Error in checking out!")
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -52,9 +63,9 @@ const Summary = () => {
       <Button
         onClick={onCheckout}
         className="w-full mt-6"
-        disabled={!items.length}
+        disabled={!items.length || loading}
       >
-        Checkout
+        {loading ? "Preparing your order..." : "Checkout"}
       </Button>
     </div>
   )
